@@ -201,5 +201,51 @@ mobileStockPage=function(){
  const cards=rows.map(x=>'<article class="m-item-card">'+mobileStockLine(x.r,x.i)+'<div class="m-item-actions"><button class="highlight" onclick="openStockForm(\'in\',\''+x.i.id+'\',\''+bid+'\')">↓ Nhập</button><button onclick="openStockForm(\'out\',\''+x.i.id+'\',\''+bid+'\')">↑ Xuất</button>'+(manager()?'<button class="manager-action" onclick="openStockForm(\'adjust\',\''+x.i.id+'\',\''+bid+'\')">±</button><button class="manager-action" onclick="openStockForm(\'transfer\',\''+x.i.id+'\',\''+bid+'\')">⇄</button><button class="manager-action" onclick="ingredientForm(\''+x.i.id+'\')">Sửa</button>':'')+'</div></article>').join('');
  return content+(cards||'<div class="m-empty">Chưa có nguyên liệu. Quản lý có thể thêm nguyên liệu ở đây.</div>')+'</div></div>';
 };
-</script></body></html>
-
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+@media(max-width:800px){
+ body,button,input,select,textarea{font-family:'Be Vietnam Pro',system-ui,-apple-system,'Segoe UI',sans-serif;letter-spacing:0}
+ body{font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+ .m-page-head h1{font-size:24px;font-weight:800;letter-spacing:-.5px}
+ .m-hello strong{font-size:23px;font-weight:800;letter-spacing:-.6px}
+ .m-card-head h2,.m-card h2{font-size:15px;font-weight:700;letter-spacing:0}
+ button{font-weight:600;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,background-color .15s ease,box-shadow .15s ease}
+ button:active{transform:scale(.98)}
+ .m-quick button{min-height:82px;display:grid;grid-template-columns:42px minmax(0,1fr);grid-template-rows:1fr;align-items:center;justify-content:initial;text-align:left;padding:12px 15px;border-radius:18px;box-shadow:0 5px 12px #122e2112}
+ .m-quick .glyph{grid-row:1;grid-column:1;font-size:22px;font-weight:600;display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:#ffffff20}
+ .m-quick .label{grid-row:1;grid-column:2;font-size:14px;line-height:1.25;font-weight:700;letter-spacing:.1px;text-transform:none}
+ .m-quick .arrow{display:none}
+ .m-quick .out .glyph{background:#103d2e13}
+ .m-manager-actions button,.m-primary{font-size:13px;font-weight:700;letter-spacing:0;border-radius:13px;box-shadow:0 2px 5px #173c2910}
+ .m-primary{padding-inline:14px}
+ .m-chip{font-size:12px;font-weight:600;padding:8px 13px}
+ .m-chip.active{font-weight:700;box-shadow:0 2px 7px #0d513f20}
+ .m-item-actions{flex-wrap:wrap}
+ .m-item-actions button{min-height:42px;font-size:12px;font-weight:650;border-radius:12px}
+ .m-item-actions button.highlight{background:#0d513f;color:white;border-color:#0d513f}
+ .m-item-actions button.manager-action{flex:1 1 28%;min-height:40px;background:#f2f5ec;color:#28543e;font-size:12px}
+ .m-search,.field input,.field select,.field textarea{font-size:14px}
+ .mobile-nav button{font-family:inherit;font-size:10px;font-weight:600;letter-spacing:0}
+ .mobile-nav button.active{font-weight:700}
+ .mobile-nav i{font-style:normal;font-size:20px;line-height:1.1}
+ .btn,.small{font-family:inherit;font-weight:650;letter-spacing:0}
+ .btn.primary{box-shadow:0 4px 10px #0d513f22}
+ .modal-head h2{font-size:18px;font-weight:750;letter-spacing:-.2px}
+ .close{font-family:inherit;font-weight:500}
+}
+</style>
+<script>
+const renderBeforeMobileButtonLabels=render;
+render=function(){
+ renderBeforeMobileButtonLabels();
+ if(!window.matchMedia('(max-width:800px)').matches)return;
+ document.querySelectorAll('.m-item-actions .manager-action').forEach(button=>{
+  const action=button.getAttribute('onclick')||'';
+  if(action.includes("openStockForm('adjust'")){button.textContent='± Điều chỉnh';button.setAttribute('aria-label','Điều chỉnh tồn kho')}
+  else if(action.includes("openStockForm('transfer'")){button.textContent='⇄ Chuyển kho';button.setAttribute('aria-label','Chuyển kho')}
+  else if(action.includes('ingredientForm(')){button.textContent='Sửa';button.setAttribute('aria-label','Sửa nguyên liệu')}
+ });
+};
+</script>
+</body></html>
