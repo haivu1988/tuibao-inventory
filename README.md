@@ -9,6 +9,7 @@
 - Chỉ quản lý được điều chỉnh số lượng và chuyển nguyên liệu giữa các chi nhánh.
 - Xem lịch sử xuất kho theo ngày, tuần, tháng, năm và số liệu theo tháng.
 - Thêm ảnh nguyên liệu.
+- Nhân viên tự đổi mật khẩu và cập nhật ảnh đại diện; quản lý có thể gắn ảnh cho nhân viên.
 
 ## Cài dữ liệu vào Supabase
 
@@ -22,6 +23,10 @@
 
 App tạo tài khoản nhân viên bằng một hàm bảo mật phía Supabase. Hàm này cần được triển khai trong **Edge Functions** và cài một khóa bí mật ở phía Supabase. Khóa bí mật không được nhập vào app hoặc gửi trong chat. Tệp hàm nằm tại `supabase/functions/create-staff/index.ts`.
 
+## Bật ảnh đại diện
+
+Sau khi đã chạy migration `0001_inventory.sql`, chạy thêm `supabase/migrations/0002_staff_avatars.sql` trong **SQL Editor**. Migration này chỉ thêm cột ảnh đại diện, bucket lưu ảnh riêng tư và quyền đọc/tải ảnh; không xóa dữ liệu kho. Đổi mật khẩu của chính tài khoản không cần migration.
+
 ## Đưa app lên mạng
 
 Tệp giao diện nằm trong thư mục `public`. Đưa toàn bộ thư mục này lên dịch vụ lưu trữ website (ví dụ Vercel) để có đường link cho nhân viên mở trên điện thoại. Tài khoản Vercel hiện chưa được kết nối trong phiên này, nên app chưa được xuất bản.
@@ -32,3 +37,4 @@ Tệp giao diện nằm trong thư mục `public`. Đưa toàn bộ thư mục n
 - Không đưa khóa Secret / service-role vào thư mục `public`, không gửi khóa đó trong chat.
 - Nguyên liệu và chi nhánh được lưu trữ thay vì xóa vĩnh viễn để giữ lịch sử giao dịch.
 - Mật khẩu quản lý không được lưu trong bộ app.
+
