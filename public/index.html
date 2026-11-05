@@ -273,4 +273,51 @@ render=function(){
  });
 };
 </script>
+<script>
+function mobileMonthSeries(branchId){
+ const now=new Date(),series=[];
+ for(let offset=5;offset>=0;offset--){
+  const date=new Date(now.getFullYear(),now.getMonth()-offset,1),monthTx=tx.filter(t=>{const d=new Date(t.created_at);return d.getFullYear()===date.getFullYear()&&d.getMonth()===date.getMonth()&&(manager()?t.branch_id===branchId:t.branch_id===profile.branch_id)});
+  let inValue=0,outValue=0,inCount=0,outCount=0;
+  for(const t of monthTx){const i=items.find(x=>x.id===t.ingredient_id),value=Number(t.quantity)*Number(i?.unit_price||0);if(t.kind==='in'){inValue+=value;inCount++}else if(t.kind==='out'){outValue+=value;outCount++}}
+  series.push({label:date.toLocaleDateString('vi-VN',{month:'short'}).replace('.',''),inValue,outValue,inCount,outCount});
+ }
+ return series;
+}
+function moneyCompact(n){n=Number(n||0);if(n>=1e9)return (n/1e9).toLocaleString('vi-VN',{maximumFractionDigits:1})+' tỷ';if(n>=1e6)return (n/1e6).toLocaleString('vi-VN',{maximumFractionDigits:1})+' tr';if(n>=1e3)return (n/1e3).toLocaleString('vi-VN',{maximumFractionDigits:0})+'k';return n.toLocaleString('vi-VN')+'đ'}
+function mobileMoneyOverview(bid){
+ const rows=inventoryFor(bid),stockValue=rows.reduce((sum,r)=>sum+Number(r.quantity)*Number(items.find(i=>i.id===r.ingredient_id)?.unit_price||0),0),months=mobileMonthSeries(bid),current=months.at(-1),previous=months.at(-2),max=Math.max(1,...months.map(m=>m.outValue));
+ const bars=months.map(m=>'<div class="m-bar-col"><span class="m-bar-value">'+(m.outValue?moneyCompact(m.outValue):'–')+'</span><div class="m-bar" style="height:'+Math.max(5,Math.round(m.outValue/max*66))+'px"></div><span class="m-bar-label">'+esc(m.label)+'</span></div>').join('');
+ return '<section class="m-value-card"><div><span>Giá trị tồn kho ước tính</span><strong>'+money(stockValue)+'</strong><small>Theo đơn giá hiện tại của nguyên liệu</small></div><span class="m-value-icon">₫</span></section><section class="m-card m-month-card"><div class="m-card-head"><div><h2>Thống kê 6 tháng</h2><small class="m-ing-meta">Giá trị nhập và xuất ước tính</small></div><button class="m-link" onclick="go(\'history\')">Chi tiết ›</button></div><div class="m-month-compare"><div><span>Tháng này</span><b>↓ '+moneyCompact(current?.outValue||0)+'</b><small>'+(current?.outCount||0)+' lượt xuất</small></div><div><span>Tháng trước</span><b>↓ '+moneyCompact(previous?.outValue||0)+'</b><small>'+(previous?.outCount||0)+' lượt xuất</small></div></div><div class="m-chart-legend"><i></i> Giá trị xuất kho ước tính</div><div class="m-bars">'+bars+'</div><div class="m-month-totals"><span>Nhập tháng này<b>'+moneyCompact(current?.inValue||0)+'</b></span><span>Xuất tháng này<b>'+moneyCompact(current?.outValue||0)+'</b></span></div></section>';
+}
+const mobileHomeBeforeMoney=mobileHomePage;
+mobileHomePage=function(){return mobileHomeBeforeMoney().replace('<div class="m-content">','<div class="m-content">'+mobileMoneyOverview(myBranch()))};
+const mobileStockBeforeMoney=mobileStockPage;
+mobileStockPage=function(){const html=mobileStockBeforeMoney(),bid=myBranch(),rows=inventoryFor(bid),total=rows.reduce((sum,r)=>sum+Number(r.quantity)*Number(items.find(i=>i.id===r.ingredient_id)?.unit_price||0),0);return html.replace('<input class="m-search"','<section class="m-stock-value"><span>Giá trị tồn kho ước tính</span><b>'+money(total)+'</b><small>'+rows.length+' mặt hàng · theo đơn giá hiện tại</small></section><input class="m-search"')};
+</script>
+<style>
+@media(max-width:800px){
+ .m-value-card{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:17px 18px;border-radius:20px;background:linear-gradient(130deg,#0c4c3a,#17694d);color:#fff;box-shadow:0 8px 18px #134c3824}
+ .m-value-card span:first-child{display:block;font-size:12px;color:#dcebe0;font-weight:600}
+ .m-value-card strong{display:block;font-size:25px;line-height:1.25;letter-spacing:-.5px;margin:5px 0}
+ .m-value-card small{display:block;font-size:10px;color:#d4e3d8}
+ .m-value-icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#d9f36b;color:#174a39;font-size:23px;font-weight:800;flex:none}
+ .m-month-card{padding:15px 14px}.m-month-card .m-card-head{align-items:flex-start}
+ .m-month-compare{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:6px 0 12px}
+ .m-month-compare>div{background:#f5f6ed;border-radius:14px;padding:11px;min-width:0}
+ .m-month-compare span,.m-month-compare small{display:block;color:#6b7970;font-size:10px}
+ .m-month-compare b{display:block;color:#174c3b;font-size:15px;margin:5px 0;white-space:nowrap}
+ .m-chart-legend{display:flex;align-items:center;gap:6px;color:#64736b;font-size:10px}.m-chart-legend i{width:8px;height:8px;border-radius:50%;background:#0d7856}
+ .m-bars{height:108px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:end;gap:6px;padding:7px 2px 0;border-bottom:1px solid #e7e9df}
+ .m-bar-col{height:100%;display:flex;min-width:0;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}
+ .m-bar{width:min(22px,70%);min-height:3px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#a9d957,#16805b)}
+ .m-bar-value{font-size:8px;color:#64736b;white-space:nowrap;line-height:1}.m-bar-label{font-size:9px;color:#6c7971;padding-bottom:4px}
+ .m-month-totals{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}
+ .m-month-totals span{font-size:10px;color:#6a786f;background:#f7f7f1;border-radius:10px;padding:8px}
+ .m-month-totals b{display:block;color:#174c3b;font-size:12px;margin-top:2px}
+ .m-stock-value{background:#e8f1e2;border:1px solid #dce8d7;border-radius:15px;padding:12px 14px;margin:0 0 1px}
+ .m-stock-value span,.m-stock-value small{display:block;color:#617569;font-size:10px}
+ .m-stock-value b{display:block;color:#124c3a;font-size:19px;margin:2px 0}
+}
+</style>
 </body></html>
